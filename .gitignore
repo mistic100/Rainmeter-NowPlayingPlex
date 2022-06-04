@@ -1,0 +1,8 @@
+/PluginDDLS/32bit/*
+!/PluginDDLS/32bit/NowPlayingPlex.dll
+/PluginDDLS/64bit/*
+!/PluginDDLS/64bit/NowPlayingPlex.dll
+/obj
+/.vs
+/*.suo
+/*.csproj.user
