@@ -31,21 +31,23 @@ _Child measures only._ Name of the main measure.
 
 Type of the measure value. Valid values are: 
 
-- `Artist`
-- `Album`
-- `Title`
-- `Number`
-- `Year`
-- `Cover`
-- `File`
-- `Duration`
-- `State`
+- `Artist` : Track artist.
+- `Album` : Current album.
+- `Title` : Track title.
+- `Number` : Track number.
+- `Year` : Track year.
+- `Cover` : URL to cover art.
+- `File` : Path to the playing media file.
+- `Duration` : Total length of track in seconds.
+- `Position` : Current position in track in seconds.
+- `Progress` : Percentage of track completed.
+- `State` : 0 for stopped, 1 for playing, and 2 for paused.
 
-**Notes:** With measures of type `Duration`, the string value is in the form `MM:SS` and the number value is the actual number of seconds.
+**Notes:** With measures of type `Duration` or `Position`, the string value is in the form `MM:SS` and the number value is the actual number of seconds.
 
 ### `DisableLeadingZero` (default: `0`)
 
-_Main measure only._  If set to `1`, the format of `Duration` is `M:SS` instead of `MM:SS`.
+_Main measure only._  If set to `1`, the format of `Duration` and `Position` is `M:SS` instead of `MM:SS`.
 
 
 # Example
@@ -82,6 +84,13 @@ Measure=Plugin
 Plugin=NowPlayingPlex
 PlayerName=MeasureTitlePlex
 PlayerType=Duration
+Substitute="00:00":""
+
+[MeasurePositionPlex]
+Measure=Plugin
+Plugin=NowPlayingPlex
+PlayerName=MeasureTitlePlex
+PlayerType=Position
 Substitute="00:00":""
 ```
 

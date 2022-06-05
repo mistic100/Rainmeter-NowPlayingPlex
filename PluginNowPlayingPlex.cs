@@ -17,7 +17,27 @@ namespace PluginNowPlayingPlex
         public string Cover;
         public string File;
         public int Duration;
+        public int Position;
+        public double Progress;
         public int State;
+
+        public int viewOffset;
+
+        internal void clear()
+        {
+            Album = null;
+            Artist = null;
+            Title = null;
+            Number = 0;
+            Year = null;
+            Cover = null;
+            File = null;
+            File = null;
+            Duration = 0;
+            Position = 0;
+            Progress = 0;
+            State = 0;
+        }
     }
 
     internal class Measure
@@ -32,6 +52,8 @@ namespace PluginNowPlayingPlex
             Cover,
             File,
             Duration,
+            Position,
+            Progress,
             State
         }
 
@@ -53,39 +75,36 @@ namespace PluginNowPlayingPlex
                 case "album":
                     Type = MeasureType.Album;
                     break;
-
                 case "artist":
                     Type = MeasureType.Artist;
                     break;
-
                 case "title":
                     Type = MeasureType.Title;
                     break;
-
                 case "number":
                     Type = MeasureType.Number;
                     break;
-
                 case "year":
                     Type = MeasureType.Year;
                     break;
-
                 case "cover":
                     Type = MeasureType.Cover;
                     break;
-
                 case "file":
                     Type = MeasureType.File;
                     break;
-
                 case "duration":
                     Type = MeasureType.Duration;
                     break;
-
+                case "position":
+                    Type = MeasureType.Position;
+                    break;
+                case "progress":
+                    Type = MeasureType.Progress;
+                    break;
                 case "state":
                     Type = MeasureType.State;
                     break;
-
                 default:
                     api.Log(API.LogType.Error, "NowPlayingPlex: Type=" + type + " not valid");
                     break;
@@ -117,11 +136,13 @@ namespace PluginNowPlayingPlex
 
         internal WebClient client = new WebClient();
 
-        internal Data currentData;
+        internal Data data = default(Data);
+        internal DateTime lastUpdate;
 
         internal ParentMeasure()
         {
             ParentMeasures.Add(this);
+            lastUpdate = DateTime.Now;
         }
 
         internal override void Dispose()
@@ -163,19 +184,21 @@ namespace PluginNowPlayingPlex
                     ? "/MediaContainer/Track/User" : "/MediaContainer/Track/User[@title=\"" + PlexUsername + "\"]");
                 if (userNode == null)
                 {
-                    currentData = default(Data);
+                    data.clear();
                 }
                 else
                 {
                     XmlNode trackNode = userNode.ParentNode;
-                    currentData = ReadData(trackNode);
+                    ReadData(trackNode);
                 }
             }
             catch (Exception e)
             {
                 api.Log(API.LogType.Error, "NowPlayingPlex: error querying : " + e.Message);
-                currentData = default(Data);
+                data.clear();
             }
+
+            lastUpdate = DateTime.Now;
 
             return GetValue(Type);
         }
@@ -190,21 +213,25 @@ namespace PluginNowPlayingPlex
             switch (type)
             {
                 case MeasureType.Album:
-                    return currentData.Album;
+                    return data.Album;
                 case MeasureType.Artist:
-                    return currentData.Artist;
+                    return data.Artist;
                 case MeasureType.Title:
-                    return currentData.Title;
+                    return data.Title;
                 case MeasureType.Number:
-                    return currentData.Number.ToString();
+                    return data.Number.ToString();
                 case MeasureType.Year:
-                    return currentData.Year;
+                    return data.Year;
                 case MeasureType.Cover:
-                    return currentData.Cover;
+                    return data.Cover;
                 case MeasureType.Duration:
-                    return FormatDuration(currentData.Duration);
+                    return FormatDuration((int) Math.Floor(data.Duration / 1000.0));
+                case MeasureType.Position:
+                    return FormatDuration((int)Math.Floor(data.Position / 1000.0));
+                case MeasureType.Progress:
+                    return data.Progress.ToString("F0");
                 case MeasureType.State:
-                    return currentData.State.ToString();
+                    return data.State.ToString();
                 default:
                     return null;
             }
@@ -215,20 +242,22 @@ namespace PluginNowPlayingPlex
             switch (type)
             {
                 case MeasureType.Number:
-                    return currentData.Number;
+                    return data.Number;
                 case MeasureType.Duration:
-                    return currentData.Duration;
+                    return Math.Floor(data.Duration / 1000.0);
+                case MeasureType.Position:
+                    return Math.Floor(data.Position / 1000.0);
+                case MeasureType.Progress:
+                    return data.Progress;
                 case MeasureType.State:
-                    return currentData.State;
+                    return data.State;
                 default:
                     return 0;
             }
         }
 
-        internal Data ReadData(XmlNode trackNode)
+        internal void ReadData(XmlNode trackNode)
         {
-            Data data = default(Data);
-
             try
             {
                 data.Album = trackNode.Attributes["parentTitle"].Value;
@@ -294,7 +323,7 @@ namespace PluginNowPlayingPlex
             }
             try
             {
-                data.Duration = int.Parse(trackNode.Attributes["duration"].Value) / 1000;
+                data.Duration = int.Parse(trackNode.Attributes["duration"].Value);
             }
             catch (Exception e)
             {
@@ -322,8 +351,27 @@ namespace PluginNowPlayingPlex
                 api.Log(API.LogType.Debug, "NowPlayingPlex: error reading State : " + e.Message);
                 data.State = 0;
             }
-
-            return data;
+            try
+            {
+                // viewOffset is only updated every 10 seconds on plex API, other values are interpolated
+                int viewOffset = int.Parse(trackNode.Attributes["viewOffset"].Value);
+                if (viewOffset != data.viewOffset)
+                {
+                    data.Position = viewOffset;
+                    data.viewOffset = viewOffset;
+                }
+                if (data.State == 1)
+                {
+                    data.Position += (int) (DateTime.Now - lastUpdate).TotalMilliseconds;
+                }
+                data.Progress = (double) data.Position / data.Duration * 100.0;
+            }
+            catch (Exception e)
+            {
+                api.Log(API.LogType.Debug, "NowPlayingPlex: error reading Position : " + e.Message);
+                data.Position = 0;
+                data.Progress = 0;
+            }
         }
 
         internal string FormatDuration(int duration)
