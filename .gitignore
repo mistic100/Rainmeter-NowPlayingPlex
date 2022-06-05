@@ -6,3 +6,5 @@
 /.vs
 /*.suo
 /*.csproj.user
+/x32
+/x64

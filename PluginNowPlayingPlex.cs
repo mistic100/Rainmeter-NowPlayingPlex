@@ -383,6 +383,8 @@ namespace PluginNowPlayingPlex
 
     public static class Plugin
     {
+        static IntPtr EMPTY_STR = Marshal.StringToHGlobalAuto("");
+
         [DllExport]
         public static void Initialize(ref IntPtr data, IntPtr rm)
         {
@@ -436,7 +438,7 @@ namespace PluginNowPlayingPlex
             }
             else
             {
-                return IntPtr.Zero;
+                return EMPTY_STR;
             }
         }
     }
