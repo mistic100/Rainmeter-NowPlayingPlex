@@ -1,8 +1,8 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 
-[assembly: AssemblyCopyright("© 2022 - Damien \"Mistic\" Sorel")]
-[assembly: AssemblyVersion("1.0.1.0")]
+[assembly: AssemblyCopyright("© 2022-2023 - Damien \"Mistic\" Sorel")]
+[assembly: AssemblyVersion("1.0.2.0")]
 [assembly: AssemblyTitleAttribute("NowPlayingPlex")]
 [assembly: AssemblyDescriptionAttribute("Shows information about the music playing in Plex.")]
 

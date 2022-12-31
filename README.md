@@ -13,7 +13,7 @@ The plugin works similarly to the [NowPlaying measure](https://docs.rainmeter.ne
 
 ### `PlexToken` (required on main measure)
 
-_Main measure only._ Your personnal access token ([how to get it](https://www.plexopedia.com/plex-media-server/general/plex-token/).
+_Main measure only._ Your personnal access token ([how to get it](https://www.plexopedia.com/plex-media-server/general/plex-token/)).
 
 ### `PlexServer` (default: `http://localhost:32400`)
 
