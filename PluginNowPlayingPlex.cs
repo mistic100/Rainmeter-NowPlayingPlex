@@ -170,6 +170,11 @@ namespace PluginNowPlayingPlex
 
         internal override double Update()
         {
+            if (string.IsNullOrEmpty(PlexToken))
+            {
+                return GetValue(Type);
+            }
+            
             string url = PlexServer + "/status/sessions?X-Plex-Token=" + PlexToken;
             api.Log(API.LogType.Debug, "NowPlayingPlex: Query " + url);
 
